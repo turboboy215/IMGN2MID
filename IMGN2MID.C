@@ -317,11 +317,11 @@ void song2mid(int songNum, long ptrs[4], int tempo)
 	int curTempo = tempo;
 	int transpose = 0;
 	int globalTranspose = 0;
-	int curNote = 0;
+	unsigned int curNote = 0;
 	int curNoteLen = 0;
-	int curDelay = 0;
-	int ctrlDelay = 0;
-	int masterDelay = 0;
+	unsigned int curDelay = 0;
+	unsigned int ctrlDelay = 0;
+	unsigned int masterDelay = 0;
 	long jumpPos = 0;
 	int firstNote = 1;
 	int timeVal = 0;
@@ -483,6 +483,10 @@ void song2mid(int songNum, long ptrs[4], int tempo)
 						else if (command[0] == 0xFF)
 						{
 							curInst = command[1];
+							if (command[1] >= 128)
+							{
+								curInst = 127;
+							}
 							firstNote = 1;
 							seqPos += 3;
 						}
@@ -511,10 +515,21 @@ void song2mid(int songNum, long ptrs[4], int tempo)
 								{
 									curNote -= 40;
 								}
-								tempPos = WriteNoteEvent(midData, midPos, curNote, curNoteSize, curDelay, firstNote, curTrack, curInst);
+								if (curNoteLen >= curNoteSize)
+								{
+									tempPos = WriteNoteEvent(midData, midPos, curNote, curNoteSize, curDelay, firstNote, curTrack, curInst);
+									curDelay = curNoteLen - curNoteSize;
+								}
+								else
+								{
+									tempPos = WriteNoteEvent(midData, midPos, curNote, curNoteLen, curDelay, firstNote, curTrack, curInst);
+									curDelay = 0;
+								}
+
 								firstNote = 0;
 								midPos = tempPos;
-								curDelay = curNoteLen - curNoteSize;
+
+
 							}
 							seqPos += 3;
 
